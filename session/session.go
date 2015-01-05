@@ -1,7 +1,8 @@
 /* Package login/session creates a new session handler. This simple package
  * uses an in-memory database (mapping) to manage sessions and generates a
  * session cookie. It is not designed to be extensible or anything fancy.
- * The UUIDs remain valid forever and are never removed */
+ * The UUIDs remain valid forever and are never removed while the server
+ * remains running but are not persistant between restarts */
 package session
 
 import (
@@ -19,8 +20,9 @@ type Session struct {
 
 var errInvalidUUID = errors.New("Invalid or expired UUID")
 
-func (s *Session) Init() {
-	s.m = make(map[string]string)
+/* New creates a new in-memory session manager */
+func New() *Session {
+	return &Session{m: make(map[string]string)}
 }
 
 /* Add requests a new UUID/GID for the given user, adds it to the session
@@ -39,6 +41,8 @@ func (s *Session) Add(w http.ResponseWriter, uid string) {
 	http.SetCookie(w, cookie)
 }
 
+/* Query returns the user ID of the connected client based on the UUID stored
+ * in the session cookie */
 func (s *Session) Query(req *http.Request) (string, error) {
 	c, err := req.Cookie("login_uuid_cookie")
 	if err != nil {

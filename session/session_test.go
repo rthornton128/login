@@ -12,8 +12,7 @@ import (
 
 /* only determines if a cookie was set, not whether it is correct in any way */
 func TestSessionAdd(t *testing.T) {
-	var s session.Session
-	s.Init()
+	s := session.New()
 
 	w := httptest.NewRecorder()
 	s.Add(w, "user_id")
@@ -35,8 +34,7 @@ func TestSessionQuery(t *testing.T) {
 	}
 
 	/* setup session manager */
-	var s session.Session
-	s.Init()
+	s := session.New()
 
 	/* setup test server */
 	ts := httptest.NewServer(http.HandlerFunc(
