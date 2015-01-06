@@ -4,7 +4,11 @@
 <title>Login Example - Welcome</title>
 </head>
 <body>
-<h1>Welcome {{.Name}}!</h1>
-<p>Hello, {{.Name}}. Your UID is {{.UID}}.</p>
+<h1>Welcome{{if .UserID}} {{.Name}}{{end}}!</h1>
+{{if .UserID}}
+<p>Hello, {{.Name}}. Your UID is {{.UserID}}.</p>
+{{else}}
+<p>You must <a href="login.html">login</a> or 
+<a href="register.html">register</a> a new account.{{end}}
 </body>
 <html>
