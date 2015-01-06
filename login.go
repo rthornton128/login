@@ -2,33 +2,99 @@ package main
 
 import (
 	"flag"
+	"html"
 	"log"
 	"net/http"
+	"text/template"
+
+	"github.com/rthornton128/login/crypt"
+	"github.com/rthornton128/login/middle"
+	"github.com/rthornton128/login/session"
+	"github.com/rthornton128/login/store"
 )
 
-var addr, port *string
+var templates *template.Template
+var db store.SqliteDB
+var sm *session.Session
 
-func init() {
-	addr = flag.String("addr", "", "Server address")
-	port = flag.String("port", "8080", "Server port")
-}
+func serveRoot(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.ServeFile(w, r, "html"+html.EscapeString(r.URL.Path))
+		return
+	}
+	uid, err := sm.Query(r)
+	u := &store.User{UserID: uid}
+	if err != nil {
+		log.Println("session manager query:", err)
+	}
+	u.Query(db)
 
-type handler func(http.ResponseWriter, *http.Request)
-
-func logger(h handler) handler {
-	return func(w http.ResponseWriter, req *http.Request) {
-		log.Println(req.Method, req.URL)
-		h(w, req)
+	if err := templates.ExecuteTemplate(w, "index.html", u); err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func serveHttp(w http.ResponseWriter, req *http.Request) {}
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		u := &store.User{
+			UserID: r.FormValue("UserID"),
+		}
+		u.Query(db)
+		if !crypt.Validate(r.FormValue("Password"), u.Password, u.Salt) {
+			log.Print("user name and password do not match")
+			http.Error(w, "user name and password do not match",
+				http.StatusUnauthorized)
+			return
+		}
+		sm.Add(w, u.UserID)
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
+
+func handleRegister(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		password, salt := crypt.Hash(r.FormValue("Password"))
+		u := &store.User{
+			UserID:   r.FormValue("UserID"),
+			Name:     r.FormValue("Name"),
+			Password: password,
+			Salt:     salt,
+		}
+		if err := u.Store(db); err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		sm.Add(w, u.UserID)
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
 
 func main() {
+	/* compile template(s) and exit on failure */
+	templates = template.Must(template.ParseFiles("html/index.html"))
+
+	/* setup parse package */
+	addr := flag.String("addr", "", "Server address")
+	port := flag.String("port", "8080", "Server port")
 	flag.Parse()
-	http.HandleFunc("/", logger(serveHttp))
-	err := http.ListenAndServe(*addr+":"+*port, nil)
-	if err != nil {
+
+	/* setup session manager */
+	sm = session.New()
+
+	/* initialize database */
+	db.Init("sqlite_login.db")
+
+	/* setup handlers */
+	http.HandleFunc("/login", middle.LogAccess(handleLogin))
+	http.HandleFunc("/register", middle.LogAccess(handleRegister))
+	http.HandleFunc("/", serveRoot)
+
+	/* start server */
+	log.Println("Starting server...")
+	if err := http.ListenAndServe(*addr+":"+*port, nil); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("Server shutdown")
 }
