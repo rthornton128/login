@@ -32,11 +32,10 @@ func (s *Session) Add(w http.ResponseWriter, uid string) {
 	s.m[gid] = uid
 
 	cookie := &http.Cookie{
-		Name:    "login_uuid_cookie",
-		Value:   gid,
-		Path:    "/",
-		Domain:  "locahost",
-		Expires: time.Now().Add(time.Minute * 5),
+		Name:     "login_uuid_cookie",
+		Value:    gid,
+		Expires:  time.Now().Add(time.Minute * 5),
+		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
 }
