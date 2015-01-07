@@ -38,10 +38,11 @@ func serveRoot(w http.ResponseWriter, r *http.Request) {
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		u := &store.User{
-			UserID: r.FormValue("UserID"),
+			UserID: html.EscapeString(r.FormValue("UserID")),
 		}
 		u.Query(db)
-		if !crypt.Validate(r.FormValue("Password"), u.Password, u.Salt) {
+		if !crypt.Validate(html.EscapeString(r.FormValue("Password")),
+			u.Password, u.Salt) {
 			log.Print("user name and password do not match")
 			http.Error(w, "user name and password do not match",
 				http.StatusUnauthorized)
@@ -54,10 +55,10 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func handleRegister(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		password, salt := crypt.Hash(r.FormValue("Password"))
+		password, salt := crypt.Hash(html.EscapeString(r.FormValue("Password")))
 		u := &store.User{
-			UserID:   r.FormValue("UserID"),
-			Name:     r.FormValue("Name"),
+			UserID:   html.EscapeString(r.FormValue("UserID")),
+			Name:     html.EscapeString(r.FormValue("Name")),
 			Password: password,
 			Salt:     salt,
 		}

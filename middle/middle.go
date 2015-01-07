@@ -2,6 +2,7 @@
 package middle
 
 import (
+	"html"
 	"log"
 	"net/http"
 )
@@ -11,8 +12,8 @@ import (
 func LogAccess(f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
-			log.Println("Attempted login by:", r.FormValue("UserID"),
-				"("+r.RemoteAddr+")")
+			log.Println("Attempted login by:",
+				html.EscapeString(r.FormValue("UserID")), "("+r.RemoteAddr+")")
 		}
 		f(w, r)
 	}
