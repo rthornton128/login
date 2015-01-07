@@ -1,5 +1,5 @@
-/* login/uuid implements the barest minimum requirements for a Version 4 UUID
- * as specified by RFC4122 found at: http://tools.ietf.org/html/rfc4122 */
+// login/uuid implements the barest minimum requirements for a Version 4 UUID
+// as specified by RFC4122 found at: http://tools.ietf.org/html/rfc4122
 package uuid
 
 import (
@@ -14,7 +14,7 @@ const (
 	VersionMask     byte = 0x0f
 )
 
-/* NewVersion4 returns a string containing a new, randomly generated UUID */
+// NewVersion4 returns a string containing a new, randomly generated UUID
 func NewVersion4() string {
 	b := make([]byte, 16)
 	rand.Read(b)

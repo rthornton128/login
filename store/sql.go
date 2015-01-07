@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" // for database/sql driver
 )
 
-/* Sqlite 3 database store */
+// SqliteDB is a wrapper for the Sqlite3 database store
 type SqliteDB struct{ *sql.DB }
 
-/* Init opens the database and sets up the tables if not already created */
+// Init opens the database and sets up the tables if not already created
 func (db *SqliteDB) Init(filename string) {
 	var err error
 	db.DB, err = sql.Open("sqlite3", filename)
@@ -27,12 +27,15 @@ func (db *SqliteDB) Init(filename string) {
 	}
 }
 
+// AddUser inserts user data into the database
 func (db SqliteDB) AddUser(u *User) (err error) {
 	sqlStmt := `INSERT INTO Users (uid, name, pwd, salt) VALUES (?, ?, ?, ?);`
 	_, err = db.Exec(sqlStmt, u.UserID, u.Name, u.Password, u.Salt)
 	return err
 }
 
+// QueryUser queries the database for the user identified by the UserID
+// field
 func (db SqliteDB) QueryUser(u *User) (err error) {
 	sqlStmt := `SELECT name, pwd, salt FROM Users WHERE uid = ?;`
 	r := db.QueryRow(sqlStmt, u.UserID)
