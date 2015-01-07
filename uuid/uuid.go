@@ -1,4 +1,4 @@
-// login/uuid implements the barest minimum requirements for a Version 4 UUID
+// Package uuid implements the barest minimum requirements for a Version 4 UUID
 // as specified by RFC4122 found at: http://tools.ietf.org/html/rfc4122
 package uuid
 

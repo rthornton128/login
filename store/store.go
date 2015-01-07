@@ -4,7 +4,7 @@
 // This package needs to accomplish three tasks:
 // 1) Store a User's ID, Name, Password and Salt
 // 2) Retrieve the Password and Salt hashes for verification
-// 3) Retrieve the Name of the User */
+// 3) Retrieve the Name of the User
 package store
 
 type User struct {
