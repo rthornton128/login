@@ -1,12 +1,15 @@
-// Package crypt implements a simple password encryption method. bcrypt would
-// be better in a production environment but crypto/rand will more suffice for
-// this example (and probably even in many live programs, too)
+// Package crypt implements a simple password encryption method. Using
+// SHA512 encryption is potentially dangerous. A more secure hashing algorithm
+// like bcrypt (https://godoc.org/golang.org/x/crypto/bcrypt) or scrypt
+// (https://godoc.org/golang.org/x/crypto/scrypt) should be used for anything
+// intended to be used in a live environment. For the purpose of this
+// program, the cryptography algorithms used will suffice.
 package crypt
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha512"
+	"crypto/subtle"
 	"log"
 )
 
@@ -29,5 +32,5 @@ func Hash(rawPassword string) (password, salt []byte) {
 // the supplied hashed password and salt combination; otherwise, false
 func Validate(rawPassword string, hashedPassword, salt []byte) bool {
 	hashedResult := sha512.Sum512([]byte(rawPassword + string(salt)))
-	return bytes.Equal(hashedResult[:], hashedPassword)
+	return subtle.ConstantTimeCompare(hashedResult[:], hashedPassword) == 1
 }
