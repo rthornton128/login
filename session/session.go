@@ -27,17 +27,20 @@ func New() *Session {
 
 // Add requests a new UUID/GID for the given user, adds it to the session
 // manager and sends the newly generated ID to w in a cookie
-func (s *Session) Add(w http.ResponseWriter, uid string) {
-	gid := uuid.NewVersion4()
-	s.m[gid] = uid
+func (s *Session) Add(w http.ResponseWriter, uid string) error {
+	gid, err := uuid.NewVersion4()
+	if err == nil {
+		s.m[gid] = uid
 
-	cookie := &http.Cookie{
-		Name:     "login_uuid_cookie",
-		Value:    gid,
-		Expires:  time.Now().Add(time.Minute * 5),
-		HttpOnly: true,
+		cookie := &http.Cookie{
+			Name:     "login_uuid_cookie",
+			Value:    gid,
+			Expires:  time.Now().Add(time.Minute * 5),
+			HttpOnly: true,
+		}
+		http.SetCookie(w, cookie)
 	}
-	http.SetCookie(w, cookie)
+	return err
 }
 
 // Query returns the user ID of the connected client based on the UUID stored

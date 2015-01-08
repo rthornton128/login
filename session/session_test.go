@@ -15,11 +15,14 @@ func TestSessionAdd(t *testing.T) {
 	s := session.New()
 
 	w := httptest.NewRecorder()
-	s.Add(w, "user_id")
+	err := s.Add(w, "user_id")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	cookie_str := w.HeaderMap.Get("Set-Cookie")
 	if cookie_str == "" {
-		t.Fail()
+		t.Fatal("cookie_str empty")
 	}
 }
 
@@ -39,7 +42,9 @@ func TestSessionQuery(t *testing.T) {
 	/* setup test server */
 	ts := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			s.Add(w, "user_id")
+			if err := s.Add(w, "user_id"); err != nil {
+				t.Log(err)
+			}
 		}))
 	defer ts.Close()
 
@@ -50,8 +55,7 @@ func TestSessionQuery(t *testing.T) {
 	}
 	cookies := r.Cookies()
 	if len(cookies) != 1 {
-		t.Log("Expected 1 cookie, got:", len(cookies))
-		t.Fail()
+		t.Fatal("Expected 1 cookie, got:", len(cookies))
 	}
 	r.Request.AddCookie(cookies[0])
 	uid, err := s.Query(r.Request)
