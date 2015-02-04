@@ -62,7 +62,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := u.Store(db); err != nil {
 			log.Print(err)
-			http.Error(w, err.Error(), http.StatusUnauthorized)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		sm.Add(w, u.UserID)
@@ -74,12 +74,12 @@ func main() {
 	/* compile template(s) and exit on failure */
 	templates = template.Must(template.ParseFiles("html/index.html"))
 
-	/* setup parse package */
+	/* setup flags */
 	addr := flag.String("addr", "", "Server address")
 	port := flag.String("port", "8080", "Server port")
 	flag.Parse()
 
-	/* setup session manager */
+	/* initialize session manager */
 	sm = session.New()
 
 	/* initialize database */
